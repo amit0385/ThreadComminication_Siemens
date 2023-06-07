@@ -7,9 +7,9 @@ In below example I have just used to print the name of male and fémale student 
 
 Another important aspect is both thread are communicating with standard wait and notify mechanism and the lock is on same signal object
  */
-public class MultiThread_Siemens {
+public class TwoThread_Siemens {
     static List<Student> studentList = new ArrayList<>();
-
+    private static boolean wasSingnaled = false;
     public static void main(String[] args) throws InterruptedException {
 
         Student s1= new Student("Amit", "male");
@@ -26,39 +26,40 @@ public class MultiThread_Siemens {
         studentList.add(s6);
 
         Object signalObject = new Object();
-
         Runnable runnable=() -> {
             synchronized (signalObject) {
-                try {
-                    System.out.println("Calling "+Thread.currentThread());
-                    signalObject.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                System.out.println("Calling " + Thread.currentThread());
+                while (!wasSingnaled) {
+                    try {
+                        System.out.println(Thread.currentThread().getName() + " going to wait");
+                        signalObject.wait();
+                        System.out.println(Thread.currentThread().getName() + " wait ended");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
                 studentList.stream().sorted().filter(student -> student.getGender().equals("male")).forEach(student -> System.out.println(student));
+                wasSingnaled=false;
             }
 
         };
 
         Runnable runnable2=() -> {
             synchronized (signalObject) {
+                wasSingnaled=true;
                 System.out.println("Calling "+Thread.currentThread());
                 studentList.stream().sorted().filter(student -> student.getGender().equals("female")).forEach(student -> System.out.println(student));
                 signalObject.notify();
             }
         };
         startThreads(runnable, runnable2);
-
-
-
-
     }
 
     private static void startThreads(Runnable runnable, Runnable runnable2) {
-        Thread t1= new Thread(runnable, "Male Thread");
-        t1.start();
-        Thread t2= new Thread(runnable2, "Female Thread");
+        Thread t1= new Thread(runnable, "Male Thread 1");
+        Thread t2= new Thread(runnable2, "Female Thread 1");
         t2.start();
+        t1.start();
     }
 
 }
