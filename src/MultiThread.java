@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 /*
 Objective is to use two threads for stundent list and each thread will responsible for doing the needful based on Gender
@@ -31,11 +32,13 @@ public class MultiThread {
 
         //SignalHolder signalObject = new SignalHolder(); // OK for two threaded environment
         SignalCounter signalObject = new SignalCounter(); // Ok for multithreaded environment
+        Comparator<Student> byName = Comparator.comparing(Student::getName);
+        studentList.sort(byName);
         Runnable runnable=() -> {
             try {
-                //Thread.sleep(2000); //uncomment to see other ways execution
+                Thread.sleep(2000); //uncomment to see other ways execution
                 signalObject.doWait();
-                studentList.stream().sorted().filter(student -> student.getGender().equals("male")).forEach(student -> System.out.println(student));
+                studentList.stream().filter(student -> student.getGender().equals("male")).forEach(student -> System.out.println(student));
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -44,7 +47,7 @@ public class MultiThread {
         };
 
         Runnable runnable2=() -> {
-            studentList.stream().sorted().filter(student -> student.getGender().equals("female")).forEach(student -> System.out.println(student));
+            studentList.stream().filter(student -> student.getGender().equals("female")).forEach(student -> System.out.println(student));
             signalObject.doNotify();
         };
         startThreads(runnable, runnable2);

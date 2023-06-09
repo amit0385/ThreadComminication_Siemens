@@ -6,8 +6,9 @@ public class SignalCounter {
         synchronized (this) {
             this.signals++;
             System.out.println("Signals stored: " + this.signals);
-
+            System.out.println(Thread.currentThread().getName()+" calling Notify");
             this.notify();
+            System.out.println("Notify done exiting Notify");
         }
     }
 

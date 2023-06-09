@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 /*
 Objective is to use two threads for stundent list and each thread will responsible for doing the needful based on Gender
@@ -11,20 +12,23 @@ public class TwoThread_Siemens {
     static List<Student> studentList = new ArrayList<>();
     private static boolean wasSingnaled = false;
     public static void main(String[] args) throws InterruptedException {
-
+        Student s7= new Student("Ravi", "male");
         Student s1= new Student("Amit", "male");
         Student s2= new Student("Amita", "female");
         Student s3= new Student("Chandan", "male");
         Student s4= new Student("Amrita", "female");
         Student s5= new Student("Ajay", "male");
         Student s6= new Student("Chandana", "female");
+        studentList.add(s7);
         studentList.add(s1);
         studentList.add(s2);
         studentList.add(s3);
         studentList.add(s4);
         studentList.add(s5);
         studentList.add(s6);
-
+        //Comparator<Student> byName = (std1, std2) -> std1.getName().compareTo(std2.getName());
+        Comparator<Student> byName2=Comparator.comparing(Student::getName);
+        studentList.sort(byName2);
         Object signalObject = new Object();
         Runnable runnable=() -> {
             synchronized (signalObject) {
@@ -38,7 +42,8 @@ public class TwoThread_Siemens {
                         e.printStackTrace();
                     }
                 }
-                studentList.stream().sorted().filter(student -> student.getGender().equals("male")).forEach(student -> System.out.println(student));
+
+                studentList.stream().filter(student -> student.getGender().equals("male")).forEach(student -> System.out.println(student));
                 wasSingnaled=false;
             }
 
@@ -48,8 +53,10 @@ public class TwoThread_Siemens {
             synchronized (signalObject) {
                 wasSingnaled=true;
                 System.out.println("Calling "+Thread.currentThread());
-                studentList.stream().sorted().filter(student -> student.getGender().equals("female")).forEach(student -> System.out.println(student));
+                studentList.stream().filter(student -> student.getGender().equals("female")).forEach(student -> System.out.println(student));
+                System.out.println(Thread.currentThread().getName() + " calling notify");
                 signalObject.notify();
+                System.out.println(Thread.currentThread().getName() + " exiting notify");
             }
         };
         startThreads(runnable, runnable2);
@@ -63,7 +70,7 @@ public class TwoThread_Siemens {
     }
 
 }
-class Student implements Comparable<Student >{
+class Student {
     String name;
     String gender;
 
@@ -88,11 +95,6 @@ class Student implements Comparable<Student >{
 
     public void setGender(String gender) {
         this.gender = gender;
-    }
-
-    @Override
-    public int compareTo(Student std) {
-        return this.name.compareTo(std.getName());
     }
 
     @Override
